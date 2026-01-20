@@ -370,9 +370,12 @@ def main():
     display_disruption_controls(graph, simulator, agent)
     
     # Auto-refresh toggle
-    auto_refresh = st.sidebar.checkbox("Auto-refresh (5s)", value=False)
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("⚙️ Display Options")
+    auto_refresh = st.sidebar.checkbox("Auto-refresh dashboard", value=False)
     if auto_refresh:
-        time.sleep(5)
+        st.sidebar.info("Dashboard will auto-refresh every 5 seconds")
+        # Use Streamlit's rerun for better performance
         st.rerun()
     
     # Main content

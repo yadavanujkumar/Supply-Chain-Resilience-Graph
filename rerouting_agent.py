@@ -100,14 +100,9 @@ class AutonomousReroutingAgent:
         truck_lon = failed_truck["current_lon"]
         truck_direction = failed_truck.get("direction")
         
-        # Get all packages with their details
-        package_details = []
-        for pkg_id in packages:
-            packages_data = self.graph.get_truck_packages(truck_id)
-            for pkg in packages_data:
-                if pkg["package_id"] == pkg_id:
-                    package_details.append(pkg)
-                    break
+        # Get all packages with their details (single query)
+        packages_data = self.graph.get_truck_packages(truck_id)
+        package_details = [pkg for pkg in packages_data if pkg["package_id"] in packages]
         
         # Find alternative trucks for each package
         available_trucks = []

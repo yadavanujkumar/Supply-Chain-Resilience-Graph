@@ -251,6 +251,9 @@ class ChaosEventGenerator:
         
         Args:
             affected_region: (center_lat, center_lon, radius_degrees)
+        
+        Note: Uses simple Euclidean distance for regional weather patterns.
+        For large geographic areas, consider using Haversine formula.
         """
         simulator = DisruptionSimulator(graph)
         events = []
@@ -263,6 +266,7 @@ class ChaosEventGenerator:
         for truck in all_trucks:
             lat_diff = abs(truck["current_lat"] - center_lat)
             lon_diff = abs(truck["current_lon"] - center_lon)
+            # Simple Euclidean distance (approximation for regional areas)
             distance = (lat_diff**2 + lon_diff**2)**0.5
             
             if distance <= radius:

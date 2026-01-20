@@ -233,6 +233,11 @@ class LogisticsGraph:
         """
         Find nearest available trucks with sufficient capacity
         Uses Euclidean distance for geospatial calculations
+        
+        Note: For more accurate geographic distance over large areas,
+        consider using Haversine formula or a geospatial library.
+        Current implementation is optimized for speed and works well
+        for regional logistics networks.
         """
         with self.driver.session() as session:
             if direction:
@@ -263,19 +268,25 @@ class LogisticsGraph:
                     for record in result]
     
     def transfer_package(self, package_id: str, from_truck_id: str, to_truck_id: str) -> bool:
-        """Transfer a package from one truck to another"""
+        """Transfer a package from one truck to another (atomic transaction)"""
         with self.driver.session() as session:
-            result = session.run("""
-                MATCH (from:Truck {truck_id: $from_truck_id})-[r:CARRYING]->(p:Package {package_id: $package_id})
-                MATCH (to:Truck {truck_id: $to_truck_id})
-                WHERE to.available_capacity >= p.weight
-                DELETE r
-                MERGE (to)-[:CARRYING]->(p)
-                SET from.available_capacity = from.available_capacity + p.weight,
-                    to.available_capacity = to.available_capacity - p.weight
-                RETURN p
-            """, package_id=package_id, from_truck_id=from_truck_id, to_truck_id=to_truck_id)
-            return result.single() is not None
+            # Use a single transaction to ensure atomicity
+            try:
+                result = session.run("""
+                    MATCH (from:Truck {truck_id: $from_truck_id})-[r:CARRYING]->(p:Package {package_id: $package_id})
+                    MATCH (to:Truck {truck_id: $to_truck_id})
+                    WHERE to.available_capacity >= p.weight
+                    WITH from, to, p, r
+                    DELETE r
+                    CREATE (to)-[:CARRYING]->(p)
+                    SET from.available_capacity = from.available_capacity + p.weight,
+                        to.available_capacity = to.available_capacity - p.weight
+                    RETURN p
+                """, package_id=package_id, from_truck_id=from_truck_id, to_truck_id=to_truck_id)
+                return result.single() is not None
+            except Exception as e:
+                print(f"Error transferring package {package_id}: {e}")
+                return False
     
     def update_truck_status(self, truck_id: str, status: str) -> bool:
         """Update truck status (active, failed, maintenance)"""

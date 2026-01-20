@@ -41,15 +41,16 @@ class SampleDataLoader:
     def __init__(self, graph: LogisticsGraph):
         self.graph = graph
     
-    def load_all_sample_data(self, num_trucks: int = 10, num_packages: int = 30):
+    def load_all_sample_data(self, num_trucks: int = 10, num_packages: int = 30, force: bool = False):
         """Load all sample data into the graph"""
         print("\n🔧 Loading sample data...")
         
         # Clear existing data
-        confirm = input("This will clear all existing data. Continue? (yes/no): ")
-        if confirm.lower() != "yes":
-            print("Aborted.")
-            return
+        if not force:
+            confirm = input("This will clear all existing data. Continue? (yes/no): ")
+            if confirm.lower() != "yes":
+                print("Aborted.")
+                return
         
         self.graph.clear_database()
         
@@ -219,7 +220,7 @@ class SampleDataLoader:
         print(f"   ✓ Created route associations")
 
 
-def quick_load(num_trucks: int = 10, num_packages: int = 30):
+def quick_load(num_trucks: int = 10, num_packages: int = 30, force: bool = False):
     """Quick function to load sample data"""
     graph = LogisticsGraph()
     
@@ -230,7 +231,7 @@ def quick_load(num_trucks: int = 10, num_packages: int = 30):
     try:
         graph.initialize_schema()
         loader = SampleDataLoader(graph)
-        loader.load_all_sample_data(num_trucks, num_packages)
+        loader.load_all_sample_data(num_trucks, num_packages, force=force)
         return True
     except Exception as e:
         print(f"❌ Error loading data: {e}")

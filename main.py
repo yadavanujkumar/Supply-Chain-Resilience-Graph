@@ -136,7 +136,22 @@ def run_dashboard():
     print("✓ Press Ctrl+C to stop\n")
     
     import subprocess
-    subprocess.run(["streamlit", "run", "dashboard.py"])
+    import shutil
+    
+    # Check if streamlit is available
+    if not shutil.which("streamlit"):
+        print("❌ Streamlit not found. Please install with: pip install streamlit")
+        return False
+    
+    try:
+        subprocess.run(["streamlit", "run", "dashboard.py"], shell=False, check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Error running dashboard: {e}")
+        return False
+    except KeyboardInterrupt:
+        print("\n⏸️  Dashboard stopped")
+        return True
 
 
 def print_usage():
